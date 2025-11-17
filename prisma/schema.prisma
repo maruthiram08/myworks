@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum UserRole {
+  GUEST
+  HOST
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(GUEST)
+  bio           String?   @db.Text
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  properties    Property[]
+  bookings      Booking[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+  notifications Notification[]
+
+  @@index([email])
+}
+
+enum PropertyType {
+  ENTIRE_PLACE
+  PRIVATE_ROOM
+  SHARED_ROOM
+}
+
+enum PropertyCategory {
+  APARTMENT
+  HOUSE
+  VILLA
+  CABIN
+  COTTAGE
+  LOFT
+  TOWNHOUSE
+  CASTLE
+  TREEHOUSE
+  BOAT
+  OTHER
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Property {
+  id           String           @id @default(cuid())
+  title        String
+  description  String           @db.Text
+  type         PropertyType
+  category     PropertyCategory
+  status       PropertyStatus   @default(DRAFT)
+
+  // Host
+  hostId       String
+  host         User             @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  // Location
+  country      String
+  state        String
+  city         String
+  address      String
+  zipCode      String
+  latitude     Float
+  longitude    Float
+
+  // Amenities & Details
+  guests       Int
+  bedrooms     Int
+  beds         Int
+  bathrooms    Float
+  amenities    String[]         // Array of amenity IDs/names
+
+  // Pricing
+  pricePerNight Decimal         @db.Decimal(10, 2)
+  cleaningFee   Decimal         @db.Decimal(10, 2) @default(0)
+
+  // Images
+  images       String[]         // Array of image URLs
+
+  // Availability
+  instantBook  Boolean          @default(false)
+  minNights    Int              @default(1)
+  maxNights    Int              @default(365)
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  bookings        Booking[]
+  reviews         Review[]
+  wishlist        Wishlist[]
+  blockedDates    BlockedDate[]
+  customPricing   CustomPricing[]
+
+  @@index([hostId])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@index([category])
+}
+
+model BlockedDate {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date       DateTime
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([propertyId, date])
+  @@index([propertyId])
+}
+
+model CustomPricing {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  startDate  DateTime
+  endDate    DateTime
+  price      Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([startDate, endDate])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REFUNDED
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+
+  // Guest
+  guestId         String
+  guest           User          @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Property
+  propertyId      String
+  property        Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Dates
+  checkIn         DateTime
+  checkOut        DateTime
+  nights          Int
+
+  // Guests
+  adults          Int           @default(1)
+  children        Int           @default(0)
+  infants         Int           @default(0)
+
+  // Pricing
+  pricePerNight   Decimal       @db.Decimal(10, 2)
+  cleaningFee     Decimal       @db.Decimal(10, 2)
+  serviceFee      Decimal       @db.Decimal(10, 2)
+  totalPrice      Decimal       @db.Decimal(10, 2)
+
+  // Payment
+  stripePaymentId String?
+  stripeRefundId  String?
+
+  // Status
+  status          BookingStatus @default(PENDING)
+  cancelledAt     DateTime?
+  cancelReason    String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payments        Payment[]
+
+  @@index([guestId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([checkIn, checkOut])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("usd")
+  status          PaymentStatus
+
+  stripePaymentId String?       @unique
+  stripeRefundId  String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([bookingId])
+  @@index([stripePaymentId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+
+  // Reviewer
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Property
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Rating (1-5)
+  rating     Int
+
+  // Review categories (1-5 each)
+  cleanliness   Int
+  accuracy      Int
+  checkIn       Int
+  communication Int
+  location      Int
+  value         Int
+
+  // Comment
+  comment    String   @db.Text
+
+  // Host reply
+  hostReply  String?  @db.Text
+  repliedAt  DateTime?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, propertyId])
+  @@index([propertyId])
+  @@index([userId])
+  @@index([rating])
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@index([propertyId])
+}
+
+enum NotificationType {
+  BOOKING_REQUEST
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  NEW_REVIEW
+  MESSAGE
+  PAYOUT
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  read      Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
