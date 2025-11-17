@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zennity - Credit Card Offers App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -1px;
+    }
+
+    .tagline {
+      font-size: 18px;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .description {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .description h2 {
+      font-size: 24px;
+      color: #1A1A1A;
+      margin-bottom: 15px;
+    }
+
+    .description p {
+      font-size: 16px;
+      color: #666666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .feature {
+      background: #F8F8F8;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .screen-card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    .screen-number {
+      font-size: 14px;
+      color: #FF6B35;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .screen-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 8px;
+    }
+
+    .screen-description {
+      font-size: 14px;
+      color: #666666;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .footer {
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .color-palette {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .color-palette h3 {
+      font-size: 20px;
+      color: #1A1A1A;
+      margin-bottom: 20px;
+    }
+
+    .colors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+
+    .color-item {
+      text-align: center;
+    }
+
+    .color-swatch {
+      width: 100%;
+      height: 60px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .color-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 4px;
+    }
+
+    .color-value {
+      font-size: 11px;
+      color: #999999;
+      font-family: monospace;
+    }
+
+    @media (max-width: 600px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .screens-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Zennity</div>
+      <div class="tagline">Never Miss a Deal</div>
+    </div>
+
+    <!-- Description -->
+    <div class="description">
+      <h2>Credit Card Offers & Tips App</h2>
+      <p>
+        Zennity is a mobile-first credit card deals app designed for iOS, targeting credit card enthusiasts in India.
+        The app helps users discover, track, and maximize credit card offers, bonuses, and stacking opportunities.
+      </p>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔥</div>
+          <strong>Live Deals Feed</strong><br>
+          Never miss time-sensitive offers
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <strong>Smart Tracking</strong><br>
+          Monitor spending goals & bonuses
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧮</div>
+          <strong>Stacking Calculator</strong><br>
+          Maximize returns with combos
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💳</div>
+          <strong>Card Portfolio</strong><br>
+          Manage all your cards in one place
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Palette -->
+    <div class="color-palette">
+      <h3>Brand Colors</h3>
+      <div class="colors">
+        <div class="color-item">
+          <div class="color-swatch" style="background: #FF6B35;"></div>
+          <div class="color-name">Primary Orange</div>
+          <div class="color-value">#FF6B35</div>
+        </div>
+        <div class="color-item">
+          <div class="color-swatch" style="background: #5856D6;"></div>
+          <div class="color-name">Secondary Purple</div>
+          <div class="color-value">#5856D6</div>
+        </div>
+        <div class="color-item">
+          <div class="color-swatch" style="background: #34C759;"></div>
+          <div class="color-name">Success Green</div>
+          <div class="color-value">#34C759</div>
+        </div>
+        <div class="color-item">
+          <div class="color-swatch" style="background: #FF9500;"></div>
+          <div class="color-name">Warning Orange</div>
+          <div class="color-value">#FF9500</div>
+        </div>
+        <div class="color-item">
+          <div class="color-swatch" style="background: #FF3B30;"></div>
+          <div class="color-name">Alert Red</div>
+          <div class="color-value">#FF3B30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screens Grid -->
+    <div class="screens-grid">
+      <a href="screen1-feed.html" class="screen-card">
+        <div class="screen-number">SCREEN 1</div>
+        <div class="screen-title">Feed Screen</div>
+        <div class="screen-description">
+          Main feed with filter chips, hot deals, transfer bonuses, and welcome offers. Features time-sensitive badges and quick action buttons.
+        </div>
+      </a>
+
+      <a href="screen2-card-detail.html" class="screen-card">
+        <div class="screen-number">SCREEN 2</div>
+        <div class="screen-title">Card Detail</div>
+        <div class="screen-description">
+          Detailed view of a credit card with gradient hero section, active offers list, and card management actions.
+        </div>
+      </a>
+
+      <a href="screen3-tracker.html" class="screen-card">
+        <div class="screen-number">SCREEN 3</div>
+        <div class="screen-title">My Tracker</div>
+        <div class="screen-description">
+          Track active deals with progress bars, upcoming actions calendar, and goal management features.
+        </div>
+      </a>
+
+      <a href="screen4-offers.html" class="screen-card">
+        <div class="screen-number">SCREEN 4</div>
+        <div class="screen-title">Offers Browser</div>
+        <div class="screen-description">
+          Browse trending offers by category, access the stacking calculator, and discover new deals across banks.
+        </div>
+      </a>
+
+      <a href="screen5-calculator.html" class="screen-card">
+        <div class="screen-number">SCREEN 5</div>
+        <div class="screen-title">Stacking Calculator</div>
+        <div class="screen-description">
+          Calculate maximum value by stacking multiple offers. Input purchase amount and see step-by-step optimization.
+        </div>
+      </a>
+
+      <a href="screen6-portfolio.html" class="screen-card">
+        <div class="screen-number">SCREEN 6</div>
+        <div class="screen-title">Cards Portfolio</div>
+        <div class="screen-description">
+          View all your credit cards with colorful gradients, active offers count, and fee status at a glance.
+        </div>
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Designed for iOS • Built with HTML/CSS • Ready for development</p>
+      <p style="margin-top: 10px; opacity: 0.7;">Click any screen above to view the high-fidelity mockup</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zennity - Stacking Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="phone-frame">
+    <!-- Notch -->
+    <div class="notch"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div>9:41</div>
+      <div class="status-icons">
+        <span>📶</span>
+        <span>📡</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Navigation Bar -->
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+        <a href="screen4-offers.html" style="font-size: 24px; color: var(--primary-orange); text-decoration: none;">←</a>
+        <h1 class="heading" style="margin: 0;">Stacking Calculator</h1>
+      </div>
+
+      <!-- Input Section -->
+      <div class="card">
+        <label class="input-label">Purchase Amount</label>
+        <input type="text" class="input-large" value="₹ 5,000" />
+
+        <label class="input-label" style="margin-top: 20px;">Merchant Category</label>
+        <select class="dropdown">
+          <option>E-commerce (Amazon, Flipkart)</option>
+          <option>Grocery Stores</option>
+          <option>Fuel Stations</option>
+          <option>Dining & Restaurants</option>
+          <option>Travel & Hotels</option>
+        </select>
+
+        <button class="button button-primary button-full mt-xl">Calculate Best Combo</button>
+      </div>
+
+      <!-- Results Hero -->
+      <div class="results-hero">
+        <div class="results-label">Total Savings</div>
+        <div class="results-value">₹ 625</div>
+        <div class="results-subtitle">12.5% return</div>
+      </div>
+
+      <!-- Recommended Stack Section -->
+      <h2 class="section-header">🎯 Recommended Stack</h2>
+
+      <!-- Step Card 1 -->
+      <div class="step-card step-green">
+        <div class="step-label">STEP 1</div>
+        <div class="step-action">Buy Big Basket GC via Tata Neu</div>
+        <div class="step-value">+5% Neu Coins = ₹250</div>
+      </div>
+
+      <!-- Step Card 2 -->
+      <div class="step-card step-purple">
+        <div class="step-label">STEP 2</div>
+        <div class="step-action">Use HDFC Regalia on Tata Neu</div>
+        <div class="step-value">+5% Rewards = ₹250</div>
+      </div>
+
+      <!-- Step Card 3 -->
+      <div class="step-card step-orange">
+        <div class="step-label">STEP 3</div>
+        <div class="step-action">Redeem on Big Basket</div>
+        <div class="step-value">+2.5% CB offer = ₹125</div>
+      </div>
+
+      <!-- Alternative Section -->
+      <h2 class="section-header">💡 Why this works</h2>
+      <div class="card card-compact">
+        <p class="subtitle" style="margin: 0;">
+          This triple-stack combines Tata Neu's cashback, HDFC Regalia's rewards on Tata Neu, and Big Basket's promotional offer. The key is buying the gift card first to maximize rewards at each step.
+        </p>
+      </div>
+
+      <!-- Spacer for bottom nav -->
+      <div style="height: 20px;"></div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <a href="screen1-feed.html" class="nav-item nav-item-inactive">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-label">Feed</div>
+      </a>
+      <a href="screen6-portfolio.html" class="nav-item nav-item-inactive">
+        <div class="nav-icon">💳</div>
+        <div class="nav-label">Cards</div>
+      </a>
+      <a href="screen4-offers.html" class="nav-item nav-item-active">
+        <div class="nav-icon">🏷️</div>
+        <div class="nav-label">Offers</div>
+      </a>
+      <a href="screen3-tracker.html" class="nav-item nav-item-inactive">
+        <div class="nav-icon">✓</div>
+        <div class="nav-label">Tracker</div>
+      </a>
+      <a href="#" class="nav-item nav-item-inactive">
+        <div class="nav-icon">👤</div>
+        <div class="nav-label">Profile</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
