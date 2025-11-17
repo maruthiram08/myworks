@@ -52,6 +52,22 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        {/* Quick Action */}
+        <Link
+          href="/admin/content"
+          className="card mb-6 bg-gradient-to-r from-primary-600 to-blue-600 text-white hover:shadow-2xl transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-2xl font-bold mb-2">📊 Content Management Portal</h3>
+              <p className="text-primary-100">
+                Comprehensive content management - view and manage all content in one place
+              </p>
+            </div>
+            <div className="text-4xl">→</div>
+          </div>
+        </Link>
+
         {/* Management Links */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link
