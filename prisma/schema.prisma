@@ -1,0 +1,412 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Auth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User and Profile Models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  profile       UserProfile?
+  progress      UserProgress[]
+  streaks       UserStreak[]
+  quests        UserQuest[]
+  achievements  UserAchievement[]
+  notifications Notification[]
+  lessonSessions LessonSession[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model UserProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  xp              Int      @default(0)
+  level           Int      @default(1)
+  hearts          Int      @default(5)
+  gems            Int      @default(0)
+
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  lastActiveDate  DateTime @default(now())
+
+  selectedLanguageId String?
+  selectedLanguage   Language? @relation(fields: [selectedLanguageId], references: [id])
+
+  notificationEmail     Boolean @default(true)
+  notificationPush      Boolean @default(true)
+  notificationStreak    Boolean @default(true)
+  notificationDaily     Boolean @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Language and Learning Content Models
+model Language {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique // e.g., 'es', 'fr', 'de'
+  flag        String   // emoji or icon
+  description String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units        Unit[]
+  userProfiles UserProfile[]
+  userProgress UserProgress[]
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  languageId  String
+  language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  order       Int
+  isLocked    Boolean  @default(false)
+  requiredXP  Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  order       Int
+  xpReward    Int      @default(10)
+  heartsRequired Int   @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  challenges  Challenge[]
+  userProgress UserProgress[]
+  lessonSessions LessonSession[]
+}
+
+model Challenge {
+  id          String        @id @default(cuid())
+  lessonId    String
+  lesson      Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  type        ChallengeType
+  order       Int
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  questions   Question[]
+}
+
+enum ChallengeType {
+  SELECT
+  ASSIST
+  SPEAK
+  LISTEN
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  challengeId   String
+  challenge     Challenge      @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  questionType  QuestionType
+  question      String         // The question text or prompt
+  answer        String         // Correct answer
+  options       String[]       // JSON array for multiple choice
+  translation   String?        // Translation for context
+  audioUrl      String?        // For audio questions
+  imageUrl      String?        // For image questions
+  audioText     String?        // Text to be converted to speech
+
+  difficulty    Int            @default(1) // 1-5 scale
+  order         Int
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  userAnswers   UserAnswer[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TEXT_INPUT
+  AUDIO_LISTEN
+  AUDIO_SPEAK
+  IMAGE_SELECT
+  TRANSLATE
+  FILL_BLANK
+}
+
+// Progress and Performance Models
+model UserProgress {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  languageId        String
+  language          Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  lessonId          String
+  lesson            Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  completed         Boolean  @default(false)
+  score             Int      @default(0)
+  attempts          Int      @default(0)
+  lastAttemptDate   DateTime @default(now())
+  nextReviewDate    DateTime? // For spaced repetition
+  reviewInterval    Int      @default(1) // Days until next review
+  easeFactor        Float    @default(2.5) // SM-2 algorithm ease factor
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+model LessonSession {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId      String
+  lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  xpEarned      Int      @default(0)
+  heartsLost    Int      @default(0)
+  accuracy      Float    @default(0)
+
+  userAnswers   UserAnswer[]
+}
+
+model UserAnswer {
+  id              String        @id @default(cuid())
+  sessionId       String
+  session         LessonSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  userAnswer      String
+  isCorrect       Boolean
+  timeSpent       Int           // milliseconds
+  hintsUsed       Int           @default(0)
+
+  createdAt       DateTime      @default(now())
+}
+
+// Gamification Models
+model UserStreak {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date            DateTime @unique
+  lessonsCompleted Int     @default(0)
+  xpEarned        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+}
+
+model DailyQuest {
+  id          String   @id @default(cuid())
+
+  title       String
+  description String
+  type        QuestType
+  target      Int      // Target value (e.g., 3 lessons, 50 XP)
+  xpReward    Int
+  gemReward   Int      @default(0)
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userQuests  UserQuest[]
+}
+
+enum QuestType {
+  COMPLETE_LESSONS
+  EARN_XP
+  PERFECT_LESSON
+  USE_NO_HEARTS
+  PRACTICE_MINUTES
+}
+
+model UserQuest {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId     String
+  quest       DailyQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  progress    Int        @default(0)
+  completed   Boolean    @default(false)
+  claimedAt   DateTime?
+  expiresAt   DateTime
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([userId, questId, expiresAt])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+
+  title       String
+  description String
+  icon        String
+  category    AchievementCategory
+  requirement Int      // Value needed to unlock
+  xpReward    Int
+  gemReward   Int      @default(0)
+
+  isSecret    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userAchievements UserAchievement[]
+}
+
+enum AchievementCategory {
+  STREAK
+  LESSONS
+  XP
+  PERFECT
+  SOCIAL
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  unlockedAt    DateTime    @default(now())
+  progress      Int         @default(0)
+
+  @@unique([userId, achievementId])
+}
+
+model Leaderboard {
+  id          String   @id @default(cuid())
+  userId      String
+  username    String
+  userImage   String?
+
+  xp          Int
+  level       Int
+  streak      Int
+
+  rank        Int
+  period      LeaderboardPeriod
+  periodDate  DateTime // Week/month identifier
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, period, periodDate])
+  @@index([period, periodDate, xp])
+}
+
+enum LeaderboardPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ALL_TIME
+}
+
+// Notification Models
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  message     String
+  actionUrl   String?
+
+  read        Boolean          @default(false)
+  sent        Boolean          @default(false)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+enum NotificationType {
+  STREAK_REMINDER
+  DAILY_QUEST
+  ACHIEVEMENT
+  LEVEL_UP
+  LEADERBOARD
+}
