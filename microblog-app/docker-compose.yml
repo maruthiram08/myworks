@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: microblog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: microblog
+      POSTGRES_PASSWORD: microblog_password
+      POSTGRES_DB: microblog
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microblog-network
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microblog-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://microblog:microblog_password@db:5432/microblog?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: your-secret-key-change-in-production
+      # Add your other environment variables here
+      # GOOGLE_CLIENT_ID: your-google-client-id
+      # GOOGLE_CLIENT_SECRET: your-google-client-secret
+      # GITHUB_CLIENT_ID: your-github-client-id
+      # GITHUB_CLIENT_SECRET: your-github-client-secret
+      # NEXT_PUBLIC_PUSHER_APP_KEY: your-pusher-app-key
+      # PUSHER_APP_ID: your-pusher-app-id
+      # PUSHER_SECRET: your-pusher-secret
+      # NEXT_PUBLIC_PUSHER_CLUSTER: your-pusher-cluster
+    depends_on:
+      - db
+    networks:
+      - microblog-network
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node server.js
+      "
+
+volumes:
+  postgres_data:
+
+networks:
+  microblog-network:
+    driver: bridge
