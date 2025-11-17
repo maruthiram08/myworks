@@ -1,0 +1,153 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Backend tests and build
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ridehailing_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Run Prisma migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ridehailing_test
+        run: npx prisma migrate deploy
+
+      - name: Build TypeScript
+        working-directory: backend
+        run: npm run build
+
+      - name: Build Docker image
+        working-directory: backend
+        run: docker build -t ridehailing-backend:${{ github.sha }} .
+
+  # Frontend tests and build
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build Next.js
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_WS_URL: ws://localhost:4000
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret
+        run: npm run build
+
+      - name: Build Docker image
+        working-directory: frontend
+        run: docker build -t ridehailing-frontend:${{ github.sha }} .
+
+  # Deploy to production
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          # Add your deployment script here
+          # Examples:
+          # - Deploy to AWS ECS
+          # - Deploy to Google Cloud Run
+          # - Deploy to DigitalOcean App Platform
+          # - Deploy to your VPS via SSH
+
+      # Example: Deploy to DigitalOcean
+      # - name: Install doctl
+      #   uses: digitalocean/action-doctl@v2
+      #   with:
+      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      #
+      # - name: Build and push Docker images
+      #   run: |
+      #     docker build -t registry.digitalocean.com/your-registry/backend:latest ./backend
+      #     docker build -t registry.digitalocean.com/your-registry/frontend:latest ./frontend
+      #     doctl registry login
+      #     docker push registry.digitalocean.com/your-registry/backend:latest
+      #     docker push registry.digitalocean.com/your-registry/frontend:latest
+      #
+      # - name: Update DigitalOcean App
+      #   run: |
+      #     doctl apps update ${{ secrets.APP_ID }} --spec .do/app.yaml
+
+      # Example: Deploy via SSH
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     script: |
+      #       cd /var/www/ridehailing
+      #       git pull origin main
+      #       docker-compose down
+      #       docker-compose up -d --build
