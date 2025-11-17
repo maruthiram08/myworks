@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MAKER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          Role      @default(USER)
+  bio           String?
+  website       String?
+  twitter       String?
+
+  products      Product[]
+  votes         Vote[]
+  comments      Comment[]
+  reports       Report[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+
+  products    Product[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model Product {
+  id              String    @id @default(cuid())
+  name            String
+  tagline         String
+  description     String
+  website         String?
+  logo            String?
+  images          String[]
+
+  makerId         String
+  maker           User      @relation(fields: [makerId], references: [id], onDelete: Cascade)
+
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  tags            Tag[]
+  votes           Vote[]
+  comments        Comment[]
+  reports         Report[]
+
+  isPublished     Boolean   @default(true)
+  isFeatured      Boolean   @default(false)
+  isSpam          Boolean   @default(false)
+
+  viewCount       Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([makerId])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([isPublished])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+
+  products  Product[]
+
+  createdAt DateTime  @default(now())
+
+  @@index([slug])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  isDeleted Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reason    String
+  details   String?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  resolved  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([resolved])
+}
